@@ -1,0 +1,39 @@
+/* font_7 wixui-rich-text__text */
+.p1 {line-height:normal; font-size:15px;}
+
+/* wixui-rich-text__text */
+.sp1 {letter-spacing:normal;}
+
+/* Same as original */
+.mHZSwn {display: none;}
+
+/* BG img */
+#BACKGROUND_GROUP_TRANSITION_GROUP img {width: 1897px;height: 654px;object-fit: cover;object-position: 50% 50%;}
+
+/* Video replace, archive note */
+.video-replace {border: solid red 2px;}
+
+/* Menu */
+nav.wixui-vertical-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #333;
+    display: flex;
+    flex-wrap: wrap;
+}
+nav.wixui-vertical-menu li {
+    padding: 14px 20px;
+}
+nav.wixui-vertical-menu li:hover {
+    background: #444;
+}
+nav.wixui-vertical-menu li.active-page {
+    background: #444;
+}
+
+
+nav.wixui-vertical-menu a {
+    color: white;
+    text-decoration: none;
+}
