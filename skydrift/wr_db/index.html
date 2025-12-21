@@ -1,0 +1,220 @@
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.13.0/sql-wasm.js" integrity="sha512-Yra4xuTWinXfBpG2ftgDX8MVmMiOev1FtqiYs51+kEna/5peD0kZqAL1syYCH61f9gxmAFidIJz42IKcRhWMkw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<!-- <script src="sql-wasm.js"></script> -->
+<head>
+    <script type="text/javascript" src="steph_lib.js"></script>
+    <link rel="stylesheet" href="steph_lib.css">
+</head>
+<body>
+    <h1 id="main_title">Stéphanie !'s library</h1>
+    <h2 id="main_subtitle">Skydrift World Record History</h2>
+
+    <p id="js-required-warning">Requires Javascript to run</p>
+
+    <div id="version-stuff">
+        <p><span id="main_version_nb">Version</span> <span id="version-nb">2.0</span></p>
+        <p><span id="main_last_update">Last records update</span>&nbsp;: <span id="last-data-udpate" data-date="2025-04-22">2025-04-22</span></p>
+    </div>
+
+    <table id="filter-settings">
+        <tr>
+            <th rowspan="2" id="main_header_display_settings">Display settings</th>
+            <th id="main_header_language">Language</th>
+            <th id="main_header_date_format">Date format</th>
+            <th id="main_header_time_format">Time format</th>
+            <th id="main_header_chara_display_mode">Character display mode</th>
+        </tr>
+        <tr>
+            <td>
+                <select id="fs-language">
+                    <option value="ja">日本語</option>
+                    <option value="en" selected>English</option>
+                    <option value="cn">简体中文</option>
+                    <option value="cht">繁體中文</option>
+                    <option value="fre">Français</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-date-format">
+                    <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                    <option value="yyyy/mm/dd">YYYY/MM/DD</option>
+                    <option value="mm-dd-yyyy">MM-DD-YYYY</option>
+                    <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                    <option value="dd-mm-yyyy">DD-MM-YYYY</option>
+                    <option value="dd/mm/yyyy">DD/MM/YYYY</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-time-format">
+                    <option value="m:ss.000">M:ss.mmm</option>
+                    <option value="m:ss:000">M:ss:mmm</option>
+                    <option value="m:ss,000">M:ss,mmm</option>
+                    <option value="m'ssQUOTE000">M':ss"mmm</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-chara-display-mode">
+                    <option value="short">Short name</option>
+                    <option value="full">Full name</option>
+                    <option value="icon" selected>Icon</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th rowspan="4" id="main_header_leaderboard_filters">History filters</th>
+            <th id="main_header_mode">Mode</th>
+            <th id="main_header_video_status">Video status</th>
+            <th id="main_header_video_type">Video type</th>
+            <th id="main_header_replay_file">Replay file</th>
+        </tr>
+        <tr>
+            <td>
+                <select id="fs-mode">
+                    <option value="record">All records</option>
+                    <option value="no_player_dupe">1 record per player per day</option>
+                    <option value="no_day_dupe">1 record per day</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-video-status">
+                    <option value="ALL">All</option>
+                    <option value="Public">Public</option>
+                    <option value="Private">Private</option>
+                    <option value="None">None</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-video-type">
+                    <option value="ALL">All</option>
+                    <option value="Liveplay with inputs">Liveplay with inputs</option>
+                    <option value="Liveplay">Liveplay</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Ghost">Ghost</option>
+                    <option value="Unknown">Unknown</option>
+                    <option value="Race against ghost">Race against ghost</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-replay-file">
+                    <option value="ALL">All</option>
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th id="main_header_track">Track</td>
+            <th id="main_header_category">Category</td>
+            <th id="main_header_board">Board</td>
+            <th id="main_header_rider">Rider</td>
+        </tr>
+        <tr>
+            <td>
+                <select id="fs-track">
+                    <option value="ALL" id="select_all_tracks">All tracks</option>
+                    <option value="1">MC1</option>
+                    <option value="2">FoM</option>
+                    <option value="3">Village</option>
+                    <option value="4">SDM</option>
+                    <option value="5">Bamboo</option>
+                    <option value="6">MoF</option>
+                    <option value="7">Sei</option>
+                    <option value="8">Haku</option>
+                    <option value="9">EoBH</option>
+                    <option value="10">Misty</option>
+                    <option value="11">Old Cap</option>
+                    <option value="12">MC2</option>
+                    <option value="13">OW</option>
+                    <option value="14">Library</option>
+                    <option value="15">SoT</option>
+                    <option value="16">Moonlit</option>
+                    <option value="17">Depths</option>
+                    <option value="18">RDA</option>
+                    <option value="19">RDB</option>
+                    <option value="20">Heav</option>
+                    <option value="21">CC</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-category">
+                    <option value="ALL">All</option>
+                    <option value="Normal">Normal</option>
+                    <option value="OoB">Out of bounds</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-board">
+                    <option value="ALL" id="select_all_characters">All characters</option>
+                    <option value="1">Reimu</option>
+                    <option value="2">Marisa</option>
+                    <option value="3">Sakuya</option>
+                    <option value="4">Remilia</option>
+                    <option value="5">Sanae</option>
+                    <option value="6">Suwako</option>
+                    <option value="7">Koishi</option>
+                    <option value="8">Kokoro</option>
+                    <option value="9">Youmu</option>
+                    <option value="10">Udonge</option>
+                    <option value="11">Nue</option>
+                    <option value="12">Futo</option>
+                    <option value="13">Cirno</option>
+                    <option value="14">Seija</option>
+                    <option value="15">Suika</option>
+                    <option value="16">Kasen</option>
+                    <option value="17">Tenshi</option>
+                    <option value="18">Yukari</option>
+                    <option value="19">Clownpiece</option>
+                    <option value="20">Flandre</option>
+                    <option value="21">Alice</option>
+                    <option value="22">Orin</option>
+                </select>
+            </td>
+            <td>
+                <select id="fs-rider">
+                    <option value="ALL" id="select_all_characters2">All characters</option>
+                    <option value="1">Reimu</option>
+                    <option value="2">Marisa</option>
+                    <option value="3">Sakuya</option>
+                    <option value="4">Remilia</option>
+                    <option value="5">Sanae</option>
+                    <option value="6">Suwako</option>
+                    <option value="7">Koishi</option>
+                    <option value="8">Kokoro</option>
+                    <option value="9">Youmu</option>
+                    <option value="10">Udonge</option>
+                    <option value="11">Nue</option>
+                    <option value="12">Futo</option>
+                    <option value="13">Cirno</option>
+                    <option value="14">Seija</option>
+                    <option value="15">Suika</option>
+                    <option value="16">Kasen</option>
+                    <option value="17">Tenshi</option>
+                    <option value="18">Yukari</option>
+                    <option value="19">Clownpiece</option>
+                    <option value="20">Flandre</option>
+                    <option value="21">Alice</option>
+                    <option value="22">Orin</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+
+    <p id="main_table_title"><span id="main_header_wr_table">World records</span> <span id="runs-found"><span id="nb-runs-found">X</span> <span id="main_nb_records_identified">records identified</span></span></p>
+    <table id="wr-runs">
+        <thead>
+            <tr>
+                <th id="main_wr_table_track_version">Track version</th>
+                <th id="main_wr_table_track">Track</th>
+                <th id="main_wr_table_category">Category</th>
+                <th id="main_wr_table_date">Date</th>
+                <th id="main_wr_table_player">Player</th>
+                <th id="main_wr_table_time">Time</th>
+                <th id="main_wr_table_board">Board</th>
+                <th id="main_wr_table_rider">Rider</th>
+                <th id="main_wr_table_video">Video</th>
+                <th id="main_wr_table_replay">Replay file</th>
+                <th id="main_wr_table_note">Note</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</body>

@@ -1,0 +1,212 @@
+* {font-family: Verdana, Geneva, Tahoma, sans-serif;}
+body {background-color: #f3f3f3;}
+.hidden {
+    display: none;
+}
+
+/* Titles */
+#main_title {
+    padding-left: 1.5em;
+}
+#main_subtitle {
+    text-align: center;
+}
+
+/* Version stuff */
+#version-stuff {
+    text-align: right;
+}
+#version-stuff p {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+#version-stuff {
+    margin-bottom: 5px;
+}
+
+/* Settings table */
+#filter-settings {
+    width: 100%;
+    border-collapse: collapse;
+}
+#filter-settings td {
+    text-align: center;
+    padding: 0.25em;
+}
+#filter-settings tr:nth-child(3) th {
+    border-top: solid 3px black;
+}
+#filter-settings tr:nth-child(5) th {
+    border-top: solid 1px black;
+}
+#filter-settings tr th[rowspan] {
+    border-right: solid 3px black;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 1.5em;
+}
+
+/* Above main table */
+#main_table_title {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+#main_header_wr_table {
+    padding: 0.5em 1.5em;
+}
+#runs-found {
+    padding: 0.5em 1em;
+    font-weight: initial;
+    font-size: initial;
+    vertical-align: center;
+}
+
+/* Maint table */
+#wr-runs {
+    border-collapse: collapse;
+}
+#wr-runs thead {
+    background-color: #313451;
+    color: white;
+    border: #313451 solid;
+}
+#wr-runs tbody tr:nth-child(even) {
+    background-color: lightgray;
+}
+#wr-runs tbody td {
+    text-align: center;
+    padding: 0.25em;
+    border-right: solid 1px #313451;
+    border-bottom: solid 1px #313451;
+}
+#wr-runs tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/*date*/
+#wr-runs tbody td:nth-child(4) {
+    min-width: 7em;
+}
+/* time*/
+#wr-runs tbody td:nth-child(6) {
+    min-width: 6em;
+}
+/* notes*/
+#wr-runs tbody td:last-child {
+    text-align: left;
+    border-right: none;
+}
+/* Conditional formatting */
+/* Cateogry */
+#wr-runs tbody td:nth-child(3)[data-category="OoB"] {
+    background-color: #f1c2f3;
+}
+/* Video status */
+#wr-runs tbody td:nth-child(9)[data-video-status="Public"] {
+    background-color: #c5ffc5;
+}
+#wr-runs tbody td:nth-child(9)[data-video-status="Private"] {
+    background-color: #ffabab;
+}
+/* Replay file */
+#wr-runs tbody td:nth-child(10)[data-replay-file="1"] {
+    background-color: #c5ffc5;
+}
+#wr-runs tbody td:nth-child(10)[data-replay-file="0"] {
+    background-color: #ffabab;
+}
+/* Tracks */
+#wr-runs tbody td:nth-child(2)[data-id="1"] {
+    background-color: #d3f0c8;
+}
+#wr-runs tbody td:nth-child(2)[data-id="2"] {
+    background-color: #f0c8d9;
+}
+#wr-runs tbody td:nth-child(2)[data-id="3"] {
+    background-color: #f0e6c8;
+}
+#wr-runs tbody td:nth-child(2)[data-id="4"] {
+    background-color: #ec9797;
+}
+#wr-runs tbody td:nth-child(2)[data-id="5"] {
+    background-color: #a1ec97;
+}
+#wr-runs tbody td:nth-child(2)[data-id="6"] {
+    background-color: #ecb797;
+}
+#wr-runs tbody td:nth-child(2)[data-id="7"] {
+    background-color: #fff7d9;
+}
+#wr-runs tbody td:nth-child(2)[data-id="8"] {
+    background-color: #ffd9eb;
+}
+#wr-runs tbody td:nth-child(2)[data-id="9"] {
+    background-color: #f9cb9c;
+}
+#wr-runs tbody td:nth-child(2)[data-id="10"] {
+    background-color: #ff0000;
+}
+#wr-runs tbody td:nth-child(2)[data-id="11"] {
+    background-color: #ebb1a2;
+}
+#wr-runs tbody td:nth-child(2)[data-id="12"] {
+    background-color: #ebcaa2;
+}
+#wr-runs tbody td:nth-child(2)[data-id="13"] {
+    background-color: #7e7692;
+    color: white;
+}
+#wr-runs tbody td:nth-child(2)[data-id="14"] {
+    background-color: #b16969;
+}
+#wr-runs tbody td:nth-child(2)[data-id="15"] {
+    background-color: #b96ebd;
+}
+#wr-runs tbody td:nth-child(2)[data-id="16"] {
+    background-color: #bfafdf;
+}
+#wr-runs tbody td:nth-child(2)[data-id="17"] {
+    background-color: #c39d9d;
+}
+#wr-runs tbody td:nth-child(2)[data-id="18"] {
+    background-color: #9da9c3;
+}
+#wr-runs tbody td:nth-child(2)[data-id="19"] {
+    background-color: #9dbac3;
+}
+#wr-runs tbody td:nth-child(2)[data-id="20"] {
+    background-color: #ffeaaa;
+}
+#wr-runs tbody td:nth-child(2)[data-id="21"] {
+    background-color: #ace6e7;
+}
+/* Character icon display */
+.chara-icon {
+    background: url(chara_icon_sprite.png);
+    display: inline-block;
+    height: 168px;
+    width: 168px;
+    zoom: 0.2;
+}
+.chara-icon.chara-1 {background-position: 0px 0px;}
+.chara-icon.chara-2 {background-position: -168px 0px;}
+.chara-icon.chara-3 {background-position: -336px 0px;}
+.chara-icon.chara-4 {background-position: -504px 0px;}
+.chara-icon.chara-5 {background-position: -672px 0px;}
+.chara-icon.chara-6 {background-position: -840px 0px;}
+.chara-icon.chara-7 {background-position: -1008px 0px;}
+.chara-icon.chara-8 {background-position: -1176px 0px;}
+.chara-icon.chara-9 {background-position: -1344px 0px;}
+.chara-icon.chara-10 {background-position: -1512px 0px;}
+.chara-icon.chara-11 {background-position: -1680px 0px;}
+.chara-icon.chara-12 {background-position: 0px 168px;}
+.chara-icon.chara-13 {background-position: -168px 168px;}
+.chara-icon.chara-14 {background-position: -336px 168px;}
+.chara-icon.chara-15 {background-position: -504px 168px;}
+.chara-icon.chara-16 {background-position: -672px 168px;}
+.chara-icon.chara-17 {background-position: -840px 168px;}
+.chara-icon.chara-18 {background-position: -1008px 168px;}
+.chara-icon.chara-19 {background-position: -1176px 168px;}
+.chara-icon.chara-20 {background-position: -1344px 168px;}
+.chara-icon.chara-21 {background-position: -1512px 168px;}
+.chara-icon.chara-22 {background-position: -1680px 168px;}
