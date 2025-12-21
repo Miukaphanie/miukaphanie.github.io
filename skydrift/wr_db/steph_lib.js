@@ -323,7 +323,7 @@ function mainScript() {
     }
     function UIreplayFileText(row) {
       if (getRowCellByName(row, "runs.replay_file") === "1") {
-        return `<a href="replay_files/${trackPath[getRowCellByName(row, "runs.track")]}/${getRowCellByName(row, "runs.player")}_${getRowCellByName(row, "runs.time").replace(/[:|\.]/g, "_")}.dat">Yes</a>`;
+        return `<a href="replay_files/${trackPath[getRowCellByName(row, "runs.track")]}/${getRowCellByName(row, "runs.player")}_${getRowCellByName(row, "runs.time").replace(/^0/, "").replace(/[:|\.]/g, "_")}.dat">Yes</a>`;
       }
       return "No"
     }
@@ -379,4 +379,5 @@ function mainScript() {
     document.querySelector("#fs-language").addEventListener("change", UIupdateUIlang, false);
     document.querySelector("#fs-chara-display-mode").addEventListener("change", UIupdateUIlang, false);
     UIupdateUIlang();
+
 }
