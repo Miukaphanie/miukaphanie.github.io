@@ -64,6 +64,7 @@ body {background-color: #f3f3f3;}
 /* Maint table */
 #wr-runs {
     border-collapse: collapse;
+    width: 100%;
 }
 #wr-runs thead {
     background-color: #313451;
