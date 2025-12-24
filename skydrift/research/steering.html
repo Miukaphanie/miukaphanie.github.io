@@ -1,0 +1,139 @@
+<head>
+    <link rel="stylesheet" href="research.css">
+</head>
+<body>
+<p>Go back to : <a href="index.html">Skydrift research homepage</a></p>
+<h1>Gensou Skydrift - Steering</h1>
+
+<p><i>Do not have all my notes on fast steering as of writing this page, so this might need corerctions</i></p>
+
+<h2 id="basic">Steering basic principles</h2>
+
+<p>Steering gets stronger depeending depending on the duration of the string, from a minimum steer (ratio <code>0</code>) to a maximum steer (ratio <code>1</code>).</p>
+
+<p>
+    Holding an input at more than <code>0.7</code> in a direction starts charging the steer (= increasing the <i>turning frames</i>).
+</p>
+
+<p>
+    The value resets to <code>0</code> when the horizontal input value drops below <code>0.7</code>.
+    This means that skipping from <code>1</code> left to <code>1</code> right will not reset the value.
+</p>
+
+<p>
+    The turning frames increase even during drift or switches.
+    It does not have to be inputed before the drift or switch (ex : pressing left during a switch will start charging the steer).
+</p>
+
+<p>It takes 80 frames (= 1,6 seconds) to fully charge the steer (= get ratio <code>1</code>), the 20 first frame are not doing anything (= ratio is <code>0</code> during those).</p>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// From class Tank, method updateTank
+// Soem variables were renammed by myself
+// If the horizontal input is strictly supreior to 0.7 (left or right), increse turning frames, else, set them to 0
+// this.mTurningFrame = this.NGDCMNIDPEG 
+// this.mInput.vec.x = this.HGJGCGMIKKD.GIAIOBGJILM.x 
+this.mTurningFrame = ((Mathf.Abs(this.mInput.vec.x) <= 0.7f) ? 0 : (++this.mTurningFrame));
+// Determines the rotation based on elpased time
+// cTankturningSpeedis OS stat (Clownpiece : 5.8, 6.05)
+// For more precise data, read the util.GetRatio
+this.mRotateY = this.mInput.vec.x * cTimeBase * Mathf.Lerp(this.cTankTurningSpeed, 10f, Util.GetRatio((float)(this.mTurningFrame - 20), 60f));
+
+
+// The util.getRatio (util = CHEBABACLCD)
+public static float AIKFLALIDHP(float KIMEBGMHNML, float BFMCFMGMLLI)
+{
+float num = KIMEBGMHNML / BFMCFMGMLLI;
+if ((double) num <= 0.0)
+    return 0.0f;
+return (double) num >= 1.0 ? 1f : num;
+}
+</code></pre>
+</details>
+
+<h2 id="keyboard">Keyboard specifics</h2>
+
+<p>Keyboard having no analog input (left is pressed or not, it can't be <code>0.7</code> pressed), Skydrift uses a system to make those inputs "smooth".</p>
+
+<p>
+    It takes 11 frames to get to ratio <code>0.7</code> when pressing a direction and 16 frames to get to full direction (ratio <code>1</code>).
+    (First counted frame is the first one different from <code>0</code>, the 11th frame is the first superior to <code>0.7</code>, the 16th frame is the first at <code>1</code>)
+</p>
+<p>
+    It takes 4 frames to drop below the <code>0.7</code> ratio when releasing direction and 16 frames to get to full neutral (<code>0</code>).
+    (First counted frame is the first one different from <code>1</code>, the 4th frame is the first inferior to <code>0.7</code>, the 16th frame is the first at <code>0</code>)
+</p>
+<p>
+    When changing direction, the decrease part is entirely skipped, so it takes 16 frames to fully change direction, as if the player pressed from neutral position.
+    For example, going from <code>-1</code> to <code>1</code> will do <code>-1</code> → <code>0.03</code> → [...] → <code>1</code> and not <code>-1</code> → <code>-0.90</code> → [...] → <code>0</code> → <code>0.03</code> → [...] → <code>1</code>.
+</p>
+
+<p>This does mean that charging a full steer takes 11 more frames (91 in total).</p>
+
+<p>Pressing a direction in the pause menu and holding it while closing the menu instantly sets the direction at its maximum (<code>-1</code> or <code>1</code>).</p>
+
+<h2 id="name-fast-steer">About the name Fast steering</h2>
+
+<p>
+    The name <i>Fast steering</i> can (could&nbsp;?) cause a bit of confusion between the western and chinese community.
+    This is due to western community calling the fact of starting a steer at max strength <i>Fast steer</i>.
+    While the chinese community called ||Don't have the name, rip|| the fact of, when steering in a direction, pressing the opposing direction, which results in a speed boost.
+    The issue being that this would also translate to <i>Fast steering.</i>
+</p>
+
+<p>
+    Thus, when using <i>fast steering</i>, I'll avoid using <i>fast steer</i> without prefixing it by "western" or "chinese".
+    And giving new names because that would be easier.
+</p>
+
+<h2 id="charge-steer">Charge Steer</h2>
+
+<p>
+    As seen in the basic principles, steer can be charged during a drift or switches.
+</p>
+
+<p>An example of use would be Cirno Circuit second U-turn, where you can switch multiple times before steering.</p>
+
+<h2 id="fast-steering-west">Steer Switch&nbsp;"Western" Fast Steering</h2>
+
+<p>
+    The "Western" fast steering consists in keeping the steer charged while changing direction.
+    This is possible because turning frames only resets if left or right input is inferior or equal to <code>0.7</code>.
+    It does not check if the input is in the same direction as before.
+</p>
+
+<p>Thus, by switching, for example, from <code>0.87</code> left to <code>0.98</code> right in only 1 frame, the turning frames will not reset.</p>
+
+<p>
+    This is mostly usable with controller.
+    MegaMia found a consistent use by using the D-pad (as emulated stick) to press the new direction.
+</p>
+
+<p>Technically, keyboard users can use steer switch by opening the pause menu as seen <a href="#keyboard">in the keyboard related section</a>.</p>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// From class Tank, method updateTank
+this.mTurningFrame = ((Mathf.Abs(this.mInput.vec.x) <= 0.7f) ? 0 : (++this.mTurningFrame));
+</code></pre>
+</details>
+
+<h2 id="fast-steering-chinese"> : "Chinese" Fast Steering</h2>
+
+<p><i>I don't have my notes and don't remmeber if I found what causes it</i></p>
+
+</body>
+
+<!-- ## Debug
+
+``` CS
+// Turning frames
+int turningFrames = Reflect.Get<int>(player, "NGDCMNIDPEG");
+UpdateUIText("TurningFrames", "Turning frames", turningFrames.ToString() + " (Ratio : " + CHEBABACLCD.AIKFLALIDHP(((float)turningFrames - 20), 60f) + ")");
+// Player input
+EDABHJPKEMH playerInput = Reflect.Get<EDABHJPKEMH>(player, "HGJGCGMIKKD");
+UpdateUIText("HorizontalInput", "Horizontal input", playerInput.GIAIOBGJILM.x.ToString());
+``` -->

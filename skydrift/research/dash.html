@@ -1,0 +1,249 @@
+<head>
+    <link rel="stylesheet" href="research.css">
+</head>
+<body>
+<p>Go back to : <a href="index.html">Skydrift research homepage</a></p>
+<h1>Gensou Skydrift - Dash (speed boost)</h1>
+
+<h2 id="behaviour">Dash behaviour</h2>
+
+<p>If the new dash power is higher than the current boost power&nbsp;:</p>
+<ul>
+  <li><i>Note&nbsp;: current boost power default value is <code>1</code>.</i></li>
+  <li>The current boost power is replaced by the new dash power.</li>
+  <li>The boost time remaining (<code>mBoostFrame</code>) is replaced by the new one (<code>dashframe</code>).</li>
+</ul>
+
+<p>If the player ground type is <code>NoJump</code>, the upper power is set to <code>0</code>.</p>
+
+<p>Then, if the upper power is strictly superior to <code>0</code>&nbsp;:</p>
+
+<ul>
+  <li>The player velocity on the Y axis (up / down) increases by <code>10</code>.</li>
+  <li>The jump frames are set to <code>60</code>.</li>
+  <li>The player is not detected as on the ground anymore (<code>mIsGround</code> & <code>mIsFakeGround</code> are set to <code>false</code>).</li>
+</ul>
+
+<p>
+  Note&nbsp;: the current boost power is used every frame while the boost timer is not expired.
+  This means that if the player switches from airbone to grounded (or the other way around), the topspeed will change accordingly.
+  So for example, using a Fan in the air with Suika and landing with 20 frames remaining will change the air fan into a ground fan.
+</p>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// From class Tank
+	public void dash(float dashpower, float upperpower = 0f, int dashframe = 120)
+	{
+		if (dashpower > this.mBoostRatio)
+		{
+			this.mBoostRatio = dashpower;
+			this.mBoostFrame = dashframe;
+		}
+		if (this.mGroundType == EGroundType.NoJump)
+		{
+			upperpower = 0f;
+		}
+		if (upperpower > 0f)
+		{
+			this.mVelocity.y = this.mVelocity.y + 10f;
+			this.mJumpFrame = 60;
+			// Note : this is an older version ↓
+      // this.mIsGround = (this.mIsFakeGround = false);
+      // But current version looks better to me
+      // Though I did not test, the result might be the same
+      this.mIsGround = this.mIsFakeGround = false;
+		}
+		if (this.mCamera)
+		{
+			this.mCamera.invokeBlur(dashpower - 1f);
+		}
+	}
+</code></pre>
+</details>
+
+<h2 id="item-dash">Dash values</h2>
+
+<table>
+  <caption>Dash values in Gensou Skydrift, ordered by dash power then dash frames, ascendant.</caption>
+  <thead>
+    <tr>
+      <th>Dash source</th>
+      <th>Dash power</th>
+      <th>Upper power</th>
+      <th>Dash frames</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Start boost<br/><span class="no-bold">(holding accelerate strictly more than <code>80</code> frames or not accelerating)</span></th>
+      <td><code>1f</code></td>
+      <td><code>0f</code></td>
+      <td><code>15</code></td>
+    </tr><tr>
+      <th>Elixir<br/><span class="no-bold">(Special State <code>Kokushi</code>)</span></th>
+      <td><code>1.1f</code></td>
+      <td><code>0f</code></td>
+      <td><code>3</code></td>
+    </tr>
+    <tr>
+      <th>Start boost<br/><span class="no-bold">(holding accelerate between <code>1</code> and <code>80</code> frames (included))</span></th>
+      <td><code>1.1f</code></td>
+      <td><code>0f</code></td>
+      <td><code>15</code></td>
+    </tr>
+    <tr>
+      <th>Yellow rings<br/><span class="no-bold">(<strong>with</strong> Koishi's Last Word <code>HeartBreak</code>)</span></th>
+      <td><code>1.1f</code></td>
+      <td><code>0f</code></td>
+      <td><code>15</code></td>
+    </tr>
+    <tr>
+      <th>Suwako Last Word on herself<br/><span class="no-bold">(Special State <code>MyRain</code>)</span></th>
+      <td><code>1.15f</code></td>
+      <td><code>0f</code></td>
+      <td><code>3</code></td>
+    </tr>
+    <tr>
+      <th>Suika Last Word<br/><span class="no-bold">(Special State <code>PurplePower</code>)</span></th>
+      <td><code>1.2f</code></td>
+      <td><code>0f</code></td>
+      <td><code>3</code></td>
+    </tr>
+    <tr>
+      <th>Udonge Last Word<br/><span class="no-bold">(Special State <code>KokushiEx</code>)</span></th>
+      <td><code>1.2f</code></td>
+      <td><code>0f</code></td>
+      <td><code>3</code></td>
+    </tr>
+    <tr>
+      <th>Switching rider</th>
+      <td><code>1.2f</code></td>
+      <td><code>0f</code></td>
+      <td><code>10</code></td>
+    </tr>
+    <tr>
+      <th>Start boost<br/><span class="no-bold">(holding accelerate between <code>21</code> and <code>30</code> frames (included))</span></th>
+      <td><code>1.2f</code></td>
+      <td><code>0f</code></td>
+      <td><code>15</code></td>
+    </tr>
+    <tr>
+      <th>Yellow rings<br/><span class="no-bold">(<strong>without</strong> Koishi Last Word <code>HeartBreak</code>)</span></th>
+      <td><code>1.2f</code></td>
+      <td><code>0f</code></td>
+      <td><code>15</code></td>
+    </tr>
+    <tr>
+      <th>Red rings</th>
+      <td><code>1.2f</code></td>
+      <td><code>0f</code></td>
+      <td><code>60</code></td>
+    </tr>
+    <tr>
+      <th>Start boost<br/><span class="no-bold">(holding accelerate between <code>31</code> and <code>40</code> frames (included))</span></th>
+      <td><code>1.3f</code></td>
+      <td><code>0f</code></td>
+      <td><code>15</code></td>
+    </tr>
+    <tr>
+      <th>Cradle</th>
+      <td><code>1.3f</code></td>
+      <td><code>20f</code></td>
+      <td><code>30</code></td>
+    </tr>
+    <tr>
+      <th>Start boost<br/><span class="no-bold">(holding accelerate between <code>41</code> and <code>50</code> frames (included))</span></th>
+      <td><code>1.35f</code></td>
+      <td><code>0f</code></td>
+      <td><code>15</code></td>
+    </tr>
+    <tr>
+      <th>Orin Last Word <code>CatWalk</code></th>
+      <td><code>1.4f</code></td>
+      <td><code>20f</code></td>
+      <td><code>30</code></td>
+    </tr>
+    <tr>
+      <th>Fan</th>
+      <td><code>1.4f</code></td>
+      <td><code>0f</code></td>
+      <td><code>70</code></td>
+    </tr>
+    <tr>
+      <th>Reverie</th>
+      <td><code>1.42f</code></td>
+      <td><code>20f</code></td>
+      <td><code>100</code></td>
+    </tr>
+    <!-- <tr>
+      <th></th>
+      <td><code></code></td>
+      <td><code></code></td>
+      <td><code></code></td>
+    </tr> -->
+  </tbody>
+</table>
+
+<p>Note 1&nbsp;: Special States are reapplied every frame while not over, so their dash frames are deceptive.</p>
+
+<p>
+  Note 2&nbsp;: For some reason, Suika & Udonge Last Word special states (<code>PurplePower</code> & <code>KokushiEX</code>) have a weird condition activations according to the decompilers.
+  It might just be some decompilation error.
+  Anyway, as a special state should not be another special state, this probably does not change anything.
+</p>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// From class Tank, method releaseAccelLock
+      float speedMultiplier = 1f;
+      if (this.accelFrames <= 50 && this.accelFrames > 40)
+        speedMultiplier = 1.35f;
+      else if (this.accelFrames <= 40 && this.accelFrames > 30)
+        speedMultiplier = 1.3f;
+      else if (this.accelFrames <= 30 && this.accelFrames > 20)
+        speedMultiplier = 1.2f;
+      else if (this.accelFrames <= 80 && this.accelFrames > 0)
+        speedMultiplier = 1.1f;
+      this.mVelocity.z += this.cTankThrottleMaxSpeed * 0.9f;
+      this.dash(speedMultiplier, boostDuration: 15);
+
+// From class Tank, method updateSpecialState, switch on special States
+				default:
+					if (espstate != ESPState.PurplePower)
+					{
+						if (espstate == ESPState.KokushiEX)
+						{
+							this.dash(1.2f, 0f, 3);
+						}
+					}
+					else
+					{
+						this.dash(1.2f, 0f, 3);
+					}
+					break;
+</code></pre>
+</details>
+
+<h3 id="ground-cradle">Ground cradles</h2>
+
+<p>
+  As seen in <i><a href="#behaviour">Dash behaviour</a></i> section, it is possible to prevent dashes using upper power to send the player in the air.
+  This can be done by using those dashes with the <code>NoJump</code> ground type.
+  <i>(Note&nbsp;: a player ground type is based on the last ground the gravity ray touched, see <a href="ringbounce.html">Ringbounce</a> study for more details)</i>
+  All <code>NoJump</code> areas in vabilla game can be found <a href="nojump_areas.html">in the dedicated list</a>.
+</p>
+
+  <!-- Hybrid cradles ?
+  Need :
+  - GrounType = NoJump, either from previous no jump, or a wall giving it
+  - isGround was true
+  - Or or something allows to make it True :
+    - Jump frames must be 0 for that
+    - So jump frames should be reset
+    - The only way to do this is to have the gravity ray hit something
+    - And Vector3.Angle(raycastHit.normal, this.mTankform.up) < num9 (=45 or 50) to not trigger
+    - Which, based on what StellatedCube said, is the slope chaging the gravity -->
+</body>

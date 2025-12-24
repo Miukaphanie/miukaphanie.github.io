@@ -1,0 +1,227 @@
+<head>
+  <link rel="stylesheet" href="research.css">
+</head>
+<body>
+<p>Go back to : <a href="index.html">Skydrift research homepage</a></p>
+<h1>Gensou Skydrift - Spell Meter</h1>
+
+<p><i>For some reason I don't have notes on passive regen, yet I still made a mod replicating it...</i></p>
+
+<p><i>Boost</i> here is referring to a rise to the spell meter (ex : getting a fifth of a bar).</p>
+
+<h2 id="meter-values">Spell Meter values</h2>
+
+<ul>
+  <li>Level 1&nbsp;: <code>1000</code></li>
+  <li>Level 2&nbsp;: <code>2000</code></li>
+  <li>[Old Last Word system] Level 3&nbsp;: <code>3000</code></li>
+  <li>[Current Last Word system] Last Word&nbsp;: <code>10000</code></li>
+</ul>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// from class TankItem
+  public const int cLV3SpellPower = 3000;
+  public const int cLV2SpellPower = 2000;
+  public const int cLV1SpellPower = 1000;
+  public const int cLWLimitPower = 10000;
+</code></pre>
+</details>
+
+<h2 id="boosting-func">Boosting function</h2>
+
+<p>
+  Each (or most&nbsp;?) time a character's spell meter changes, the <code>chargePower</code> (or <code>chargeSubPower</code> for the board) handles the change.
+  This is important as those functions can do nothing under special circumstances.
+  Current version of the game has a second parameter for those, <code>BILNCOGBIHL</code>, which seems to be a toggle to force a boost to happen.
+  It seems to only be used for red ring boosts.
+</p>
+
+<ul>
+  <li>
+    If&nbsp;:
+    <ul>
+      <li>The player is in the <code>Emit</code> item state (Cradle, Tengu Fan, Reverie & Orin Last Word),</li>
+      <li><i>Note 1&nbsp;: in current version, I'm finding a lot of places that can set this value, though I'm not sure in which context those happen</i></li>
+      <li><i>Note 2&nbsp;: I'm also not sure if this state is overwritable</i></li>
+      <li>And the value to boost is positive,</li>
+      <li>And <code>BILNCOGBIHL</code> is <code>false</code>,</li>
+    </ul>
+  </li>
+  <li>Then <strong>do not</strong> boost.</li>
+  <li>Else, add the boost value to the current meter, forcing the value between <code>0</code> & <code>2000</code>.</li>
+</ul>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// From class TankItem, some variable names were renammed by myself
+public void chargePower(int meterValueToAdd, bool BILNCOGBIHL = false)
+  // param LKAOOJJKCCN → meterValueToAdd
+  {
+    if (this.HOGCBJENGAL == NKMNNKLBGKJ.Emit && meterValueToAdd >= 0 && !BILNCOGBIHL)
+      return;
+    this.activeMeterValue = Mathf.Clamp(this.activeMeterValue + meterValueToAdd, 0, 2000);
+  }
+
+  public void chargeSubPower(int meterValueToAdd, bool BILNCOGBIHL = false)
+  {
+    if (this.HOGCBJENGAL == NKMNNKLBGKJ.Emit && meterValueToAdd >= 0 && !BILNCOGBIHL)
+      return;
+    this.subMeterValue = Mathf.Clamp(this.subMeterValue + meterValueToAdd, 0, 2000);
+  }
+// ---------- Older version ----------
+	public void chargePower(int power)
+	{
+		if (this.mState == EItemState.Emit && power >= 0)
+		{
+			return;
+		}
+		this.mSpellPower = Mathf.Clamp(this.mSpellPower + power, 0, 2000);
+	}
+
+	public void chargeSubPower(int power)
+	{
+		if (this.mState == EItemState.Emit && power >= 0)
+		{
+			return;
+		}
+		this.mSpellPowerS = Mathf.Clamp(this.mSpellPowerS + power, 0, 2000);
+	}
+</code></pre>
+</details>
+
+
+<h2 id="ring-boost">Ring boost</h2>
+
+<p>See <code>boostKart</code> method in class <code>Tank</code></p>
+
+<h3 id="yellow-ring">Yellow rings</h3>
+
+<p>Yellow rings spell boosts varies based on multiple facors.</p>
+
+<p>
+  In <i>Free Run</i>, the base value of the boost is the track booster power (see <code>Start</code> method in class <code>Tank</code> for more details, seems to be between <code>40</code> & <code>70</code>).
+  In others modes, the "base value" follows the following logic&nbsp;:
+</p>
+
+<ul>
+  <li>
+    Three parts are used for the original value in this case&nbsp;:
+    <ul>
+      <li>The track booster power.</li>
+      <li>A bigger version of the track booster power (up to 4 times), based on the player acceleration frames (acceleration frames divided by <code>3000</code>. Progression is linear, where <code>0</code> acceleration frames would be the track booster power and <code>3000</code> would be 4 times the track booster power).</li>
+      <li>The sector distance of the first player minus the sector distance of the player getting the boost.</li>
+    </ul>
+  </li>
+  <li>The boost value becomes a value between the track booster power and its bigger version, protionnaly to the sector distance between the first player & the player getting boosted (capped at <code>900</code>).</li>
+  <li>
+    This boost value is then modified based on the player rank&nbsp;:
+    <ul>
+      <li>If the player is first, it is reduced to 80%,</li>
+      <li>Else if the player is second, it is reduced to 90%,</li>
+      <li>Else if the player is third, it is reduced to 95%,</li>
+      <li>Else if the player is last and its acceleration frames are above <code>1500</code>, it is set to the bigger version of the track booster power.</li>
+    </ul>
+  </li>
+  <li><i>The result of this is what will be defined as "base value" in the following steps.</i></li>
+</ul>
+
+<p>Once this base value is obtained, a few steps still influence the final value&nbsp;:</p>
+
+<ul>
+  <li>The base value is multiplied by the character spell power (from <code>0.7f</code> to <code>1.7f</code>).</li>
+  <li><i>Note&nbsp;: I think method <code>adjustPerformance()</code> can not affect spell power, so it is ignored here.</i></li>
+  <li><i>(Then, there is an entire specialRule stuff that I did not document)</i></li>
+  <li>
+    If the player Aya frames (= frames spent driving in reverse) are strictly superior to <code>50</code>, the boost will give nothing.
+    (Or if the actual lap is stricly inferior to <code>0</code>, though I'm not entirely sure how to trigger this)
+  </li>
+</ul>
+
+<p>And finally, the boosting function is called with the result of those operations.</p>
+
+<h3 id="red-ring-conditions">Red rings activation condition</h3>
+
+<ul>
+  <li><strong>The boost can only happen if the red ring restricton delay is off</strong> (<code>this.mRedBoostFrame == 0</code>)</li>
+  <li>
+    If the player Aya frames (= frames spent driving in reverse) are inferior or equal to <code>50</code>&nbsp;:
+    <ul>
+      <li>Both the rider & board get a red ring boost (see paragraph below this list)</li>
+    </ul>
+  </li>
+  <li>
+    Sets the red ring restriction delay to <code>500</code> frames, <strong>even if the restriction was still going</strong>.
+    This means that touching the red ring during the red ring restriction delay will&nbsp;:
+    <ul>
+      <li>Not give any boost to the spell meter,</li>
+      <li>Not trigger the dash (=speed boost),</li>
+      <li>Reset the red ring restriction delay to its maximum value.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="red-ring-value">Red rings boost value</h3>
+
+<p>Note&nbsp;: this boost seems to be the only one calling the boosting function with <code>BILNCOGBIHL</code> set as <code>true</code>, which forces the boost to happen.</p>
+
+<ul>
+  <li>In <i>Free run</i>, boosts <code>500</code> (= half of a level)</li>
+  <li>
+    Else&nbsp;:
+    <ul>
+      <li>
+        If the player is in first place and they are at least at their second lap&nbsp;:
+        <ul>
+          <li>If the current meter value of the character is strictly superior to <code>1000</code>, boosts <code>200</code>.</li>
+          <li>Else, boosts <code>400</code>.</li>
+          <li>Which in theory means that a player in first place during the second lap, with a level 1 ready on its board & still a level 0 bar on the rider, will boost <code>200</code> on the board & <code>400</code> on the rider.</li>
+        </ul>
+      </li>
+      <li><i>Note&nbsp;: in earlier version, the requirements seemed to be that the player acceleration frames should at least be <code>1000</code></i></li>
+      <li>
+        Else&nbsp;:
+        <ul>
+          <li>If the current meter value is strictly superioir to <code>1000</code>, boosts <code>1000</code></li>
+          <li>Else, boosts <code>1000</code> minus the current meter value (= gives level 1 bar)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// from class Tank, some variable names were renammed by myself
+  private int getRedRingMeterBoostValue(int currentMeterValue)
+  // method name : LIPBNPPEMDF
+  // EFGKCEEABKB = arg currentMeterValue
+  {
+    if (this.world.isFreeRun())
+      return 500;
+    return this.getRank() == 0 && this.getLap() > 0 ? (currentMeterValue > 1000 ? 200 : 400) : (currentMeterValue > 1000 ? 1000 : 1000 - currentMeterValue);
+  }
+// ---------- Older version ----------
+	private int getMaxBoostPower(int spell_power)
+	{
+		if (this.mpWorld.isFreeRun())
+		{
+			return 500;
+		}
+		if (this.getRank() == 0 && this.getAccelFrame() >= 1000)
+		{
+			return (spell_power <= 1000) ? 400 : 200;
+		}
+		if (spell_power > 1000)
+		{
+			return 1000;
+		}
+		return 1000 - spell_power;
+	}
+</code></pre>>
+</details>
+
+</body>

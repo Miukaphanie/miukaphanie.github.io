@@ -1,0 +1,245 @@
+<head>
+    <link rel="stylesheet" href="research.css">
+</head>
+<body>
+<p>Go back to : <a href="index.html">Skydrift research homepage</a></p>
+<h1>Gensou Skydrift - Voile Library NISC study</h1>
+
+<p>Mods designed for research purposes were used to create this document and screenshots / footages.</p>
+<p><i>Based on experiments from novembre 2024, with some rewriting from december 2025 (without the testing tools, so I might rewrite something stupid).</i></p>
+<p><i>This study follows the <a href="ringbounce.html">ring bounce one</a>, so some concept might have been explained in that one & not here.</i></p>
+
+<h2 id="simplified">Simplified</h2>
+
+<p>
+    I believe there might be a slight luck factor for Voile Library's spiral NISC <strong>if you hit the second bookshelf</strong> (like the first example of MegaMia's video).
+</p>
+<p>
+    In Gensou Skydrift, every 20 frames (0.4sec), if you're on the ground, there's a check.
+    You want that check to happen in most parts of the bookshelf with the rings (or skip the check while in the air).
+    Otherwise, you'll keep the second bookshelf gravity.
+</p>
+
+<h2 id="not-simplified">Not simplified</h2>
+
+<h3 id="hypothesis">Hypothesis</h3>
+
+<p>
+    <code>this.mIsEnableAutoHorizon</code> is what causes the character to, sometimes, not pivot in the air.
+    This is based on various observations showing this variable having different values wether the character pivot or not.
+</p>
+
+<p>
+    <i>
+        Note : below is an extract of <code>updateTankMove</code>, the function in charge of handling most of a player movements (with comments by me).
+        Only parts related to <code>this.mIsEnableAutoHorizon</code> were extracted.
+        The "gravity ray" is a ray starting from in front of a player, pointed below them.
+    </i>
+
+</p>
+
+<pre><code>
+// /!\ /!\ /!\ This codes only executes if gravity ray hits something /!\ /!\ /!\ 
+// If State frames are a multiple of 20
+if (this.getStateFrame() % 20 == 0)
+{
+    // Disables AutoHorizon if dot product of the road normal vector and (0, 1, 0) is inferior to 0.4
+    this.mIsEnableAutoHorizon = (Vector3.Dot(this.mRoadNormalVec, Vector3.up) > 0.4f);
+}
+
+// /!\ /!\ /!\ This codes only executes if gravity ray --> DOES NOT <-- hit something /!\ /!\ /!\ 
+// If auto horizon is enabled, changes road normal vec
+if (this.mIsEnableAutoHorizon)
+{
+    // ??? To this day, still have not tried to properly document this
+    this.mRoadNormalVec = Vector3.Slerp(this.mRoadNormalVec, Quaternion.AngleAxis(this.mRotateX, this.mTankform.right) * Vector3.up, 0.02f * cTimeBase);
+}
+</code></pre>
+
+<h3 id="about-enable-autoh">Informations about <code>this.mIsEnableAutoHorizon</code></h3>
+
+<ul>
+    <li>Initiated as <code>false</code>.</li>
+    <li>Usually set to <code>true</code> at the beginning of a track, as the road normal vector is <code>(0, 1, 0)</code> at the beginning, so <code>Vector3.Dot(this.mRoadNormalVec, Vector3.up)</code> returns <code>1</code>, which is superior to <code>0.4f</code> (see <a href="#hypothesis">code in <i>Hypothesis</i> section</a> if needed).</li>
+    <li>
+        If the gravity ray <strong>hits</strong>&nbsp;:
+        <ul>
+            <li>
+                The <code>DisableHorizon</code> ground type, sets <code>this.mIsEnableAutoHorizon</code> to <code>false</code>.
+                (Example of <code>DisableHorizon</code>&nbsp;: Embers of Blazing Hell tilted part, skipped by supercut)
+            </li>
+            <li>
+                The <code>NoJump</code> ground type, sets <code>this.mIsEnableAutoHorizon</code> to <code>true</code>.
+                <ul>
+                    <li><i>
+                        Note : <code>DisableHorizon</code> sets <code>this.mIsEnableAutoHorizon</code> in the <code>else if</code> part of the collided object tag, while the <code>NoJump</code> is an extra <code>if</code> based on the current player ground type right after that all <code>else if</code> part.
+                        So having the <code>NoJump</code> ground type will always change <code>this.mIsEnableAutoHorizon</code> to <code>true</code>, while changing from <code>DisableHorizon</code> to <code>Null</code> or <code>HeavyZone</code> will keep <code>this.mIsEnableAutoHorizon</code> to <code>false</code>.
+                        (Though I'm not sure if it's somehow possible to trigger this scenario).
+                    </i></li>
+                </ul>
+            </li>
+            <li><code>Vector3.Dot(this.mRoadNormalVec, Vector3.up)</code> returning strictly more than <code>0.4f</code> sets <code>this.mIsEnableAutoHorizon</code> to <code>true</code>, otherwise sets it to <code>false</code>.</li>
+        </ul>
+    </li>
+    <li>
+        If the gravity ray <strong>does not hit</strong>&nbsp;:
+        If <code>this.mIsEnableAutoHorizon</code> is <code>true</code>, looks like it rotates the road normal vector to eventually reach <code>(0, 1, 0)</code>, which ricochet into rotating the character
+    </li>
+</ul>
+
+<h3 id="x-rotation">Informations about the player's X rotation</h3>
+
+<ul>
+    <li>If the gravity ray hits something, it will tend to reach <code>0</code>.</li>
+    <li>
+        If the gravity ray <strong>does not hit</strong> and the <strong>last</strong> ground type it hit was <strong>not</strong> <code>NoJump</code> or <code>DisableHorizon</code>&nbsp;:
+        <ul>
+            <li>If pressing down, fluctuate down to <code>-18</code> while still having elevation frames, droping to <code>-6</code> after elevation frames reach <code>1</code> (= their final value once elevator is consummed),</li>
+            <li>If pressing up, tend to reach up to <code>6</code>.</li>
+        </ul>
+    </li>
+</ul>
+
+<h3 id="nisc">Voile Library NISC</h3>
+
+<p>
+    Depending on where on the ring bookshelf and the next bookshelf you're standing, the <code>Vector3.Dot(this.mRoadNormalVec, Vector3.up) > 0.04f</code> can end up returning <code>false</code>.
+    But if this condition returns <code>false</code> and you keep this value in the air, the character won't pivot and will keep going straight following the gravity they had when elaving the ground.
+    This means you want <code>this.mIsEnableAutoHorizon</code> to be <code>true</code> when you leave the 2nd bookshelf, which happens if&nbsp;:
+</p>
+<ul>
+    <li>The check does not happen when the gravity ray hits the 2nd bookshelf</li>
+    <!-- The fuck are those 4 bullet points. Pretyt sure 1 plus 3 are theonly valid one -->
+    <!--<li>The check does not happen when the gravity ray hits the 2nd bookshelf but you got back to ring bookshelf gravity but the player road normal vector did not have enough time to switch</li>
+    <li>The player road normal vector does not have enough time to go below the required threshhold (1 frame is possible, maybe 2 ?)</li>
+    <li>just avoid the gravity ray hitting the 2nd bookshelf</li>-->
+    <li>
+        The check happens when the gravity ray hits the second bookshelf but the road normal vector did not have enough time to change to the required threshold (1 frame is possible, maybe 2 ?).
+        This is possible because <code>this.mRoadNormalVec</code> (property of the player) does not instantle switch to the collided object normal <code>raycastHit.normal</code> (uses <code>Vector3.Slerp()</code>).
+    </li>
+</ul>
+
+<p>Normals of the bookshelves for the NISC&nbsp;:</p>
+
+<iframe src="https://www.youtube.com/embed/watch?v=MsIcTCUJW_8" width="100%"></iframe>
+
+<ul>
+    <li>
+        Note 1&nbsp;: the normals here and in the mod are rounded up to decimals but the values are actually more precise.
+        This means that 2 <code>(0.9, 0.4, 0)</code> might not set the same <code>this.mIsEnableAutoHorizon</code>. 
+    </li>
+    <li>Note 2&nbsp;: in the video, look at <i>Collision Normal</i> (bottom) and check if <i>Auto Horizon Enabled ?</i> (top, 6th position) is <code>True</code> or the number in parenthesis is less than <code>0.4</code></li>
+    <li>(0:09) Almost the entire of ring bookshelf after the end of the last one&nbsp;: <code>(0.9, 0.5, 0)</code>, returns <code>true</code></li>
+    <li>(0:22) The part just before the end of ring bookshelf to the second one&nbsp;: <code>(0.9, 0.4, 0)</code>, usually returns <code>true</code></li>
+    <li>(0:31) The invisible angle between ring bookshelf and the second one&nbsp;: <code>(0.9, 0.4, -0.1)</code>, usually returns <code>true</code></li>
+    <li>(0:39) The very beginning part of the second bookshelf just after the end of ring one&nbsp;: <code>(1.0, 0.3, 0)</code>, returns <code>false</code></li>
+    <li>(0:51) The really tiny end of very beginning part of the second bookshelf just after the end of ring one&nbsp;: <code>(1.0, 0.3, -0.1)</code>, returns <code>false</code></li>
+    <li>(0:45) The beginning part (after very beginning) of the second bookshelf just after the end of ring one&nbsp;: <code>(1.0, 0.1, 0)</code>, returns <code>false</code></li>
+    <li>(0:58) The really tiny end of beginning part (after very beginning) of the second bookshelf just after the end of ring one&nbsp;: <code>(1.0, 0.1, -0.1)</code>, returns <code>false</code></li>
+    <li>(0:43, forgot to go all the way to the end but watch the other video and pause if you don't trust) Almost the entire second bookshelf after the end of the ring one&nbsp;: <code>(1, 0, 0)</code>, returns <code>false</code></li>
+</ul>
+
+<h2 id="examples">Video examples</h2>
+
+<h3 id="ex-video-no-auto-horizon">Vanilla with full debugger (without auto horizon) and rays</h3>
+
+<p>
+    This first video point was to reproduce different situations (failing / succeeding the NISC or changing gravity) to gather data.
+    Monitoring & comparing values in the debugger was then used to propose a first hypothesis.
+</p>
+
+<iframe src="https://www.youtube.com/embed/watch?v=P-YacKlpOvs" width="100%"></iframe>
+
+<p>Timecodes for each situation&nbsp;:</p>
+
+<ul>
+    <li>
+        Gravity changed&nbsp;:
+        <ul>
+            <li>OK low&nbsp;: 1:15, 1:32</li>
+            <li>OK high&nbsp;: 0:31, 0:41, 2:35</li>
+            <li>Right&nbsp;: 0:58, 2:06</li>
+            <li>Too low&nbsp;: 0:00, 2:15, 2:49</li>
+            <li>No bookshelf ride&nbsp;: 1:23, 1:38, 1:59, 2:42, 3:00, 3:06</li>
+            <li>Death barrier&nbsp;: 1:08, 3:17</li>
+        </ul>
+    </li>
+    <li>
+        Gravity did not change&nbsp;:
+        <ul>
+            <li>Left&nbsp;: 0:25, 0:51, 1:52, 2:29, 3:28</li>
+            <li>Way too far on the right&nbsp;: 1:47, 2:23, 2:56, 3:11, 3:22</li>
+        </ul>
+    </li>
+</ul>
+
+<h3 id="ex-video-auto-horizon">Vanilla with full debugger (with auto horizon) and rays</h3>
+
+<p>This second video point was to confirm the hypothesis seems to line up with game, by reproducing different situations (failing / succeeding the NISC or changing gravity).</p>
+
+<iframe src="https://www.youtube.com/watch?v=xKqwz3IyUXs" width="100%"></iframe>
+
+<p>Timecodes for each situation&nbsp;:</p>
+
+<ul>
+    <li>
+        Gravity changed&nbsp;:
+        <ul>
+            <li>
+                OK low&nbsp;:
+                <ul>
+                    <li>4:43 : spent 6 or 7 frames (from 18306 or 18308 to 18313) hitting</li>
+                    <li>5:11 : spent 8 frames (from 19927 to 19935) hitting</li>
+                    <li>5:20 : spent 7 frames (from 20332 to 20339) hitting (check happened next frame)</li>
+                    <li>5:38 : did not hit at all, we see the wall bump moving the ray to the left, dodging the bookshelf</li>
+                    <li>6:19 : spent 10 frames (from 23683 to 23692) hitting</li>
+                </ul>
+            </li>
+            <li>
+                OK high&nbsp;:
+                <ul>
+                    <li>0:58 : spent 4 frames (from 6032 to 6035) hitting</li>
+                    <li>1:08 : spent all time hitting, the check happened the frame before it would return <code>false</code> and leaving the last bookshelf at frame 6499 (= a new check happens on the next frame)</li>
+                    <li>2:12 : spent 6 frames (from 10005 to 10010) hitting</li>
+                    <li>6:12 : spent 10, 11 or 12 frames (from 23323 or 23324 to 23333 or 23334) hitting</li>
+                </ul>
+            </li>
+            <li>
+                Too low&nbsp;:
+                <ul>
+                    <li>3:38 : spent 6 frames (from 14632 to 16637) hitting</li>
+                    <li>3:45 : spent 14 frames (from 15020 to 15033) hitting but the recording did not have the frame 15020 so not sure what happened, the ratio was going up before then down but I don't know :)</li>
+                    <li>4:05 : spent 10 or 11 frames (from 16081 or 16082 to 16092) hitting</li>
+                    <li>4:19 : spent 6 or 7 frames (from 16901 or 16902 to 16907) hitting</li>
+                    <li>5:04 : spent 4 frames (from 19465 to 19468) hitting</li>
+                </ul>
+            </li>
+            <li>No bookshelf ride&nbsp;: 0:24, 0:31, 0:50, 1:35, 2:07, 2:40, 5:33, 6:02, 6:09</li>
+            <li>Death barrier&nbsp;: 1:23, 2:35, 2:54, 2:59, 3:05, 3:10, 3:20, 3:26, 3:32 (really lucky, spent 2 frames (from 14320 to 14321) hitting, though the first hit was done during the delay for the player normal road vector to go down, if the check happened next frame, it would have failed), 3:59, 4:31, 5:56</li>
+        </ul>
+    </li>
+    <li>
+        Gravity did not change&nbsp;:
+        <ul>
+            <li>
+                "Unlucky"&nbsp;:
+                <ul>
+                    <li>1:55 : spent 9 frames (from 9038 to 9046) hitting</li>
+                    <li>2:01 : spent 6 frames (from 9378 to 9383) hitting</li>
+                    <li>4:51 : spent 9 frames (from 18739 to 18747) hitting</li>
+                </ul>
+            </li>
+            <li>
+                Less "unlucky"&nbsp;:
+                <ul>
+                    <li>0:34 : spent 11 frames (from 5235 to 5246) hitting</li>
+                    <li>1:28 : spent 14 frames (from 7677 to 7690) hitting</li>
+                    <li>2:22 : spent 13 frames (from 10499 to 10511) hitting</li>
+                    <li>2:28 : spent 10 frames (from 10833 to 10842) hitting</li>
+                    <li>4:58 : spent 12 frames (from 19090 to 19101) hitting</li>
+                </ul>
+            </li>
+            <li>Bad entering angle&nbsp;: 0:04, 0:11, 0:18, 0:37, 1:17, 2:48, 3:14, 3:53, 4:13, 4:25, 4:37, 5:27 (check happened in a kinda bad timing too but anyway), 5:46, 5:52</li>
+        </ul>
+    </li>
+</ul>
