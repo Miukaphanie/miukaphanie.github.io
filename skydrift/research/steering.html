@@ -25,7 +25,7 @@
     It does not have to be inputed before the drift or switch (ex : pressing left during a switch will start charging the steer).
 </p>
 
-<p>It takes 80 frames (= 1,6 seconds) to fully charge the steer (= get ratio <code>1</code>), the 20 first frame are not doing anything (= ratio is <code>0</code> during those).</p>
+<p>It takes 80 frames (= 1,6 seconds) to fully charge the steer (= get an internal ratio to <code>1</code>), the 20 first frame are not doing anything (= said internal ratio is always <code>0</code> during those).</p>
 
 <details>
   <summary>Clic here to show code</summary>
@@ -58,11 +58,11 @@ return (double) num >= 1.0 ? 1f : num;
 <p>Keyboard having no analog input (left is pressed or not, it can't be <code>0.7</code> pressed), Skydrift uses a system to make those inputs "smooth".</p>
 
 <p>
-    It takes 11 frames to get to ratio <code>0.7</code> when pressing a direction and 16 frames to get to full direction (ratio <code>1</code>).
+    It takes 11 frames to get an horizontal input value of <code>0.7</code> when pressing a direction and 16 frames to get to full direction (value of <code>1</code>).
     (First counted frame is the first one different from <code>0</code>, the 11th frame is the first superior to <code>0.7</code>, the 16th frame is the first at <code>1</code>)
 </p>
 <p>
-    It takes 4 frames to drop below the <code>0.7</code> ratio when releasing direction and 16 frames to get to full neutral (<code>0</code>).
+    It takes 4 frames to drop below the <code>0.7</code> horizontal input value when releasing direction and 16 frames to get to full neutral (<code>0</code>).
     (First counted frame is the first one different from <code>1</code>, the 4th frame is the first inferior to <code>0.7</code>, the 16th frame is the first at <code>0</code>)
 </p>
 <p>
@@ -121,9 +121,25 @@ this.mTurningFrame = ((Mathf.Abs(this.mInput.vec.x) <= 0.7f) ? 0 : (++this.mTurn
 </code></pre>
 </details>
 
-<h2 id="fast-steering-chinese"> : "Chinese" Fast Steering</h2>
+<h2 id="fast-steering-chinese">快转 (Kuài zhuǎn → KZ) : "Chinese" Fast Steering</h2>
 
-<p><i>I don't have my notes and don't remmeber if I found what causes it</i></p>
+<p><i>Note&nbsp;: need to recheck stuff, here are my notes.</i></p>
+
+<p>
+    Pressing the other direction while steering will nullify the speed loss from steering.
+    Trying to drift in that state will have some weird effect.
+    Though, doing that will lock the horizontal input value, so doing it during the 10 frames before reaching the <code>0.7</code> threshold will prevent turning frames from going up
+</p>
+
+<p>9961's comment on this&nbsp;:</p>
+<p><i>快转 can be used in most of the corners but you don't want to abuse it since drifting well and existing with proper angles always weight more.</i></p>
+<p><i>
+    Fast steer, which refers to a charged input/pre-input bug, can even be more significant than 快转.
+    Not only it is an effective way for keyboard player to optimize their angle and get best routine (e.g. ring nisc in MC1,), but also it is usually the only option to deal with certain sessions
+    (example1: Misty first nisc: With most characters keyboard can't finish the whole nisc without max steer brought by pre-input.
+    example2: The Z-Zag in old-cap: you also have to hold the direction button while you are switching to pass safely)
+</i></p>
+
 
 </body>
 
