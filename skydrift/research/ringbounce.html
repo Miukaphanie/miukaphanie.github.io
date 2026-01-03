@@ -4,5 +4,159 @@
 <body>
 <p>Go back to : <a href="index.html">Skydrift research homepage</a></p>
 
-<p>OK this one is the only one not ready yet, but it's a long one</p>
+<h1>Gensou Skydrift - Ringbounces & air mechanics</h1>
+
+<p>Ringbounces are related to a lot of air mechanics, so this document will cover a lot on that subject and then specify more about ringbounces.</p>
+
+<h2 id="key-parts">Key parts of air mechanics</h2>
+
+<h3 id="state-frames">State frames</h3>
+
+<p>
+    State frames are basically a player internal counter.
+    They start increasing when the race loads (they reset when restarting the race), and they can only go up.
+    As they increment at the start of a player <code>FixedUpdated</code>, we can use them to track the differences between the current state of theplayer with its previous one.    
+</p>
+<p>
+    It is important to note that the <code>FixedUpdate</code> only happens 50 times a second in this game.
+    This means that if something that should trigger a condition inside the function happens between those 2 frames, it will not trigger.
+    For example, if you are airborn in state frame 210, touch the ground and become airborn again before state frame 211, the game will not register that you briefly landed.
+    (Spoiler&nsc;: this one of the "it should have ring bounced&nbsp;!" reasons)
+</p>
+
+<p>States frames have some uses outside of being an internal counter, such as timing the passive spell meter boost or the autohorizon check.</p>
+
+<h3 id="y-velocity">Y velocity</h3>
+
+<p>
+    A player "Y velocity" is its speed on the vertical axis (up / down).
+    This is basically what makes the player fall to the ground.
+</p>
+
+<p>
+    In Gensou Skydrift, a player Y velocity can not go below <code>-20f</code> and has no upper limit, though it is hard (or impossible) to exceed <code>10f</code>.
+    Only a few ways exist to change this value&nbsp;:
+</p>
+
+<ul>
+    <li>
+        Using a dash with upper power (Cradle, Reverie & Orin Last Word) will increase it by <code>10f</code>.
+        This is the only way to increase it (except by reseting it to <code>0f</code> if it was negative).
+    </li>
+    <li>
+        If the player was on the ground during the previous frame, resets it to <code>0f</code>.
+        (This happens before the gravity ray check, thus it looks at previous frame state)
+    </li>
+    <li>
+        If the player was airborn during the previous frame&nbsp;:
+        <ul>
+            <li>
+                If the ground type during previous frame was <code>NoJump</code>, lowers it by <code>32f</code> over a second (=<code>0.64</code> per frame).
+                (Note&nbsp;: ground type is based on the last object the gravity ray hit.
+                When leaving the ground, the type is kept as it was if the gravity ray does not hit anything else)
+            </li>
+            <li>Otherwise, lowers it by <code>12.8f</code> over a second (=<code>0.256</code> per frame).</li>
+            <li>During Nue's Last Word UFO, this loss is doubled.</li>
+            <li>
+                If affected by another Suwako's Last Word and the player is ranked in the top half, this loss is reduced by 10%.
+                (In older versions, being affected by Udonge's Last Word Lunatic Red Bind has the same effect)
+            </li>
+            <li>After this loss, if the value is inferior to <code>-20f</code>, sets it back to <code>-20f</code>.</li>
+        </ul>
+    </li>
+    <li>When voiding out, resets it to <code>0f</code> when respawning.</li>
+    <li>
+        After spending ~150 frames hugging a wall, resets it to <code>0f</code>.
+        (I did not study that in much details, but it resets when <code>this.mWallFrame</code> is strictly superior to 150.
+        If wall frames are superior to 0, they decreases by 1 at the beginning of every frame.
+        If hugging a wall from the side (I think), wall frames increase by 2.
+        This means that hugging a wall, leaving it, then retouching it might not reset entirely to 0.
+        See <a href="https://www.youtube.com/watch?v=VeyCY50u61s">this YouTube video as illustration</a>.)
+    </li>
+</ul>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// From class Tank, method dash
+if (upperpower > 0f)
+{
+    this.mVelocity.y = this.mVelocity.y + 10f;
+    this.mJumpFrame = 60;
+    this.mIsGround = (this.mIsFakeGround = false);
+}
+// From class Tank, method updateTankMove
+if (this.mIsGround)
+{
+    this.mVelocity.y = 0f;
+}
+else
+{
+    float num3 = (this.groundType == GroundTypeList.NoJump ? 32f : 12.8f) * Time.deltaTime;
+    if (this.isSpecialState(ESPState.UFO) && !this.tankSector.getCurrentPath().mIsForbiddenRespawn) {
+        num3 *= 2f;
+    }
+    if (this.isSpecialState(ESPState.Rain) && this.getRank() <= this.world.getTankNum() / 2) {
+    // Note : this used to have another possible activation condition : this.isSpecialState(ESPState.Redeyes)
+        num3 *= 0.9f;
+    }
+    this.mVelocity.y = this.mVelocity.y - num3;
+    if (this.mVelocity.y < -20f)
+    {
+        this.mVelocity.y = -20f;
+    }
+}
+// From class Tank, method endSpecialState
+if (state == ESPState.CourseOut)
+{
+    this.mVelocity = Vector3.zero;
+    // Rest does not matter
+}
+// From class Tank, method OnCollisionStay
+else if (this.mWallFrame > 150)
+{
+    this.mWallFrame = 0;
+    if (this.isLocal()) {this.mpWorld.getAudioManager().playSE(ESeID.otherhit);}
+    this.mVelocity = Vector3.zero;
+    this.mWallLockFrame = 1;
+    this.mRecoilVelocity = contactPoint.normal * 20f * 3f;
+    this.mRecoilVelocity += this.mTankform.rotation * (Vector3.down * 10f);
+}
+</code></pre>
+</details>
+
+
+<h3 id="elevator">Elevator & elevation frames</h3>
+
+<h3 id="jump">Jump & jump frames</h3>
+
+<h3 id="gravity-ray">Gravity ray</h3>
+
+<!-- Mettre une illustration de mon mod -->
+
+<h3 id="gravity">Gravity</h3>
+
+<h3 id="ground-detection">Ground detection</h3>
+
+<h3 id="slopes">Slopes</h3>
+
+<h3 id="y-rotation">Y rotation</h3>
+
+<h3 id="autohorizon">Autohorizon</h3>
+
+<h2 id="events-air">Air Events</h2>
+
+<p>
+    While in the air, some events can happen based on some interactions between the elements previously described, the player actions and the environment.
+    (Some are probably not intended.)
+    Each event will be named and described at its lower level.
+    Another section will details combination of multiple events&nbsp;: some commonly known ones, such as <i>ring bounces</i>, are a combination of multiple lower level ones.
+</p>
+
+<h3 id="elevator-reset">Elevator reset</h3>
+
+<h3 id="ground-ring">Ground ring</h3>
+
+<!-- Voir dossier Gensou Skydrift Ait Study -->
+
 </body>
