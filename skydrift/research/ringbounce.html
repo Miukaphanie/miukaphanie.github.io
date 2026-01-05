@@ -8,6 +8,27 @@
 
 <p>Ringbounces are related to a lot of air mechanics, so this document will cover a lot on that subject and then specify more about ringbounces.</p>
 
+<details>
+  <summary>Table of contents (clic here to show)</summary>
+  <ul>
+    <li>
+        <a href="#key-parts">Key parts of air mechanics</a>
+        <ul>
+            <li><a href="#state-frames">State frames</a></li>
+            <li><a href="#y-velocity">Y velocity</a></li>
+            <li><a href="#jump">Jump & jump frames</a></li>
+            <!-- <li><a href="#"></a></li> -->
+        </ul>
+    </li>
+    <li>
+        <a href="#events-air">Air events</a>
+        <ul>
+            
+        </ul>
+    </li>
+  </ul>
+</details>
+
 <h2 id="key-parts">Key parts of air mechanics</h2>
 
 <h3 id="state-frames">State frames</h3>
@@ -125,10 +146,94 @@ else if (this.mWallFrame > 150)
 </code></pre>
 </details>
 
-
 <h3 id="elevator">Elevator & elevation frames</h3>
 
+(See <a href="https://www.youtube.com/watch?v=4kA0VhkJThQ">this YouTube video as illustration</a>) -> Elevation frames stopping during jump.
+    
+
 <h3 id="jump">Jump & jump frames</h3>
+
+<p>
+    Jump is like a real jump.
+    You are considered in a jump after using a dash with upper power (Cradle, Reverie & Orin Last Word).
+</p>
+
+<p>
+    Jump frames are the internal counter for the duration of the jump.
+    Only a few ways exist to change this value&nbsp;:
+</p>
+
+<ul>
+    <li>Using a dash with upper power (Cradle, Reverie & Orin Last Word) will set them to <code>60</code>.</li>
+    <li>If the gravity ray hits a slope too great, they are reset to <code>0</code>.</li>
+    <li>At the end of function handling player movement, if strictly superior to 0, they decrease by 1.</li>
+</ul>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// From class Tank, method dash
+if (upperpower > 0f)
+{
+    this.mVelocity.y = this.mVelocity.y + 10f;
+    this.mJumpFrame = 60;
+    this.mIsGround = this.mIsFakeGround = false;
+}
+// From class Tank, method updateTankMove
+float num9 = this.groundType != GroundTypeList.DisableHorizon ? 45f : 50f;
+if (Vector3.Angle(raycastHit.normal, this.mTankform.up) < num9)
+{
+    // Slope stuff
+}
+else if (this.mJumpFrame > 0)
+{
+    this.mJumpFrame = 0;
+}
+</code></pre>
+</details>
+
+<p>Being (or not) in a jump as multiple consequences&nbsp;:</p>
+
+<ul>
+    <li>The length of the gravity ray changes if the player is in a jump (<a href="#gravity-ray">see section dedicated to gravity ray</a>).</li>
+    <li>If the gravity ray hits something, the ground detection (changing <code>this.mIsGround</code>) can only happen if the player is not in a jump.</li>
+    <li>The gravity on slopes changes faster if a player is in a jump (<a href="#slopes">see section dedicated to slopes</a> (I think, actually need to check better lol)).</li>
+    <li>If the gravity ray hits nothing, a jump prevents the usage of elevator, the update of elevation frames & the autohorizon to activate by rotating the character.</li>
+    <li>And two things in the collision that I'm too lazy to look at (<code>isJump</code> calls inside <code>OnCollisionStay</code> inside <code>Tank</code> class).</li>
+</ul>
+
+<details>
+  <summary>Clic here to show code</summary>
+<pre><code>
+// From class Tank, method updateTankMove
+// rayLength is renammed by me
+Ray ray = new Ray(this.mTankform.position + this.mTankform.TransformDirection(new Vector3(0f, 1f, 0.7f)), this.mTankform.TransformDirection(Vector3.down));
+RaycastHit raycastHit = new RaycastHit();
+float rayLength = this.mJumpFrame > 0 || this.mGroundType == EGroundType.NoJump ? 40f : 5f;
+// Later in the same method
+if (this.mJumpFrame == 0)
+{
+    this.mIsGround = (this.mGroundHeight < 1.2f);
+    this.mIsFakeGround = (this.mGroundHeight < 1.7f);
+    if (this.mIsGround)
+    {
+        this.mWallLockFrame = 0;
+    }
+}
+// Later in the same method
+if (Vector3.Angle(raycastHit.normal, this.mTankform.up) < num9)
+{
+    if (raycastHit.distance < 2f || this.mJumpFrame > 0)
+    {
+        this.mRoadNormalVec = Vector3.Slerp(this.mRoadNormalVec, raycastHit.normal, 0.4f * cTimeBase);
+    }
+    else
+    {
+        this.mRoadNormalVec = Vector3.Slerp(this.mRoadNormalVec, raycastHit.normal, 0.2f * cTimeBase);
+    }
+}
+</code></pre>
+</details>
 
 <h3 id="gravity-ray">Gravity ray</h3>
 
